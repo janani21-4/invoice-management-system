@@ -9,7 +9,7 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/invoices")
+    fetch("https://invoice-management-system-production-d236.up.railway.app/invoices")
       .then((res) => res.json())
       .then((data) => {
         setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);

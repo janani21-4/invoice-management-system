@@ -20,7 +20,7 @@ export default function UploadPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload", {
+      const res = await fetch("https://invoice-management-system-production-d236.up.railway.app/upload", {
         method: "POST",
         body: formData,
       });
