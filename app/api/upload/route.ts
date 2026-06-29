@@ -1,25 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+// -----------------------------
+// FIX: Prevent Prisma multiple instances in production
+// -----------------------------
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
 
 export async function POST(req: NextRequest) {
   try {
     // -----------------------------
-    // GET FILE FROM FRONTEND
+    // GET FILE
     // -----------------------------
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
-    if (!file) {
+    if (!file || !(file instanceof File)) {
       return NextResponse.json(
-        { success: false, error: "No file uploaded" },
+        { success: false, error: "Invalid file uploaded" },
         { status: 400 }
       );
     }
 
     // -----------------------------
-    // SEND TO FASTAPI (RENDER BACKEND)
+    // SEND TO FASTAPI (RENDER)
     // -----------------------------
     const pythonForm = new FormData();
     pythonForm.append("file", file);
@@ -53,7 +66,7 @@ export async function POST(req: NextRequest) {
     const f = pythonData.fields;
 
     // -----------------------------
-    // SAVE TO DATABASE (PRISMA + NEON)
+    // SAVE TO DATABASE
     // -----------------------------
     const invoice = await prisma.invoice.create({
       data: {
@@ -69,9 +82,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // -----------------------------
-    // RESPONSE TO FRONTEND
-    // -----------------------------
     return NextResponse.json({
       success: true,
       invoice,
