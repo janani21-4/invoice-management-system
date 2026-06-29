@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 
 export async function GET() {
   try {
@@ -11,25 +11,9 @@ export async function GET() {
       success: true,
       invoices,
     });
-  } catch (error: any) {
+  } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE() {
-  try {
-    await prisma.invoice.deleteMany();
-
-    return NextResponse.json({
-      success: true,
-      message: "All invoices deleted successfully.",
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: err.message },
       { status: 500 }
     );
   }
