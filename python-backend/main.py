@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 import pdfplumber
 import shutil
 import os
@@ -6,12 +7,25 @@ import re
 
 app = FastAPI()
 
+# -----------------------------
+# CORS (IMPORTANT for Vercel)
+# -----------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -----------------------------
+# UPLOAD FOLDER
+# -----------------------------
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-
 # -----------------------------
-# CLEAN FIELD EXTRACTION
+# EXTRACT LOGIC
 # -----------------------------
 def extract_fields(text: str):
 
@@ -23,13 +37,11 @@ def extract_fields(text: str):
     invoice_date = search(r"Invoice Date\s*(.*)")
     due_date = search(r"Due Date\s*(.*)")
 
-    # FIXED: better total detection
     total_amount = (
         search(r"Total Due\s*\$?([\d.]+)") or
         search(r"Total\s*\$?([\d.]+)")
     )
 
-    # FIXED: better vendor extraction
     vendor_name = search(r"From:\s*(.*)")
 
     return {
@@ -40,22 +52,26 @@ def extract_fields(text: str):
         "vendorName": vendor_name
     }
 
+# -----------------------------
+# TEST ROUTE (VERY IMPORTANT)
+# -----------------------------
+@app.get("/")
+def home():
+    return {"message": "FastAPI is running"}
 
 # -----------------------------
-# MAIN API
+# MAIN ROUTE (THIS IS WHAT YOU NEED)
 # -----------------------------
 @app.post("/extract-pdf/")
 async def extract_pdf(file: UploadFile = File(...)):
 
     file_path = f"{UPLOAD_DIR}/{file.filename}"
 
-    # save file
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     text = ""
 
-    # extract PDF text
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages:
             page_text = page.extract_text()
