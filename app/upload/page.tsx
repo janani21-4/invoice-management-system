@@ -84,7 +84,9 @@ export default function UploadPage() {
                 <p className="font-semibold text-blue-700">
                   Selected File
                 </p>
-                <p className="text-gray-700 mt-1">{file.name}</p>
+                <p className="text-gray-700 mt-1">
+                  {file.name}
+                </p>
               </div>
             )}
 
@@ -107,39 +109,47 @@ export default function UploadPage() {
           {loading ? "Processing Invoice..." : "Upload Invoice"}
         </button>
 
-        {/* SUCCESS RESULT */}
-        {result?.success && result?.fields && (
+        {/* SUCCESS */}
+        {result?.success && result?.invoice && (
+
           <div className="mt-8 bg-green-50 border border-green-300 rounded-xl p-6">
 
             <h2 className="text-2xl font-bold text-green-700">
               ✅ Invoice Uploaded Successfully
             </h2>
 
-            <div className="mt-5 space-y-2 text-gray-700">
+            <div className="mt-5 space-y-3 text-gray-700">
 
               <p>
                 <b>Invoice Number:</b>{" "}
-                {result.fields.invoiceNumber || "-"}
+                {result.invoice.invoiceNumber || "-"}
               </p>
 
               <p>
                 <b>Vendor:</b>{" "}
-                {result.fields.vendorName || "-"}
+                {result.invoice.vendorName || "-"}
               </p>
 
               <p>
                 <b>Amount:</b> $
-                {result.fields.totalAmount || "0.00"}
+                {result.invoice.totalAmount || "0.00"}
               </p>
 
               <p>
                 <b>Invoice Date:</b>{" "}
-                {result.fields.invoiceDate || "-"}
+                {result.invoice.invoiceDate
+                  ? new Date(result.invoice.invoiceDate)
+                    .toLocaleDateString()
+                  : "-"}
+              </p>
+
+              <p>
+                <b>Status:</b>{" "}
+                {result.invoice.status}
               </p>
 
             </div>
 
-            {/* ACTION BUTTONS */}
             <div className="flex gap-4 mt-8">
 
               <Link href="/invoices">
@@ -158,6 +168,7 @@ export default function UploadPage() {
             </div>
 
           </div>
+
         )}
 
       </div>
