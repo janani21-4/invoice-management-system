@@ -17,8 +17,7 @@ export async function POST(req: NextRequest) {
     pythonForm.append("file", file);
 
     const backendUrl = process.env.PYTHON_BACKEND_URL;
-    console.log("DATABASE_URL:", process.env.DATABASE_URL?.slice(0, 20));
-    
+    console.log("DB URL exists:", !!process.env.DATABASE_URL);
     if (!backendUrl) {
       return NextResponse.json(
         { success: false, error: "Backend URL not configured" },
