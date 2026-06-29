@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../lib/prisma";
 
-const prisma = new PrismaClient();
-
-// ---------------- GET ALL INVOICES ----------------
 export async function GET() {
   try {
     const invoices = await prisma.invoice.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json({
@@ -18,16 +13,12 @@ export async function GET() {
     });
   } catch (error: any) {
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
 
-// ---------------- DELETE ALL INVOICES ----------------
 export async function DELETE() {
   try {
     await prisma.invoice.deleteMany();
@@ -38,10 +29,7 @@ export async function DELETE() {
     });
   } catch (error: any) {
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }

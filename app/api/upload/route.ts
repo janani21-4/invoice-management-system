@@ -1,26 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-// -----------------------------
-// FIX: Prevent Prisma multiple instances in production
-// -----------------------------
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+import { prisma } from "../../lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    // -----------------------------
-    // GET FILE
-    // -----------------------------
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -31,9 +13,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // -----------------------------
-    // SEND TO FASTAPI (RENDER)
-    // -----------------------------
     const pythonForm = new FormData();
     pythonForm.append("file", file);
 
@@ -65,9 +44,6 @@ export async function POST(req: NextRequest) {
 
     const f = pythonData.fields;
 
-    // -----------------------------
-    // SAVE TO DATABASE
-    // -----------------------------
     const invoice = await prisma.invoice.create({
       data: {
         invoiceNumber: f.invoiceNumber || null,
@@ -88,13 +64,8 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("UPLOAD ERROR:", error);
-
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || "Internal server error",
-      },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }

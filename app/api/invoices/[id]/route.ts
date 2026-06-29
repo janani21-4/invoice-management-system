@@ -1,30 +1,19 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../../lib/prisma";
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = await params;
-
         const invoice = await prisma.invoice.findUnique({
-            where: {
-                id,
-            },
+            where: { id: params.id },
         });
 
         if (!invoice) {
             return NextResponse.json(
-                {
-                    success: false,
-                    message: "Invoice not found",
-                },
-                {
-                    status: 404,
-                }
+                { success: false, message: "Invoice not found" },
+                { status: 404 }
             );
         }
 
@@ -32,15 +21,11 @@ export async function GET(
             success: true,
             invoice,
         });
+
     } catch (error: any) {
         return NextResponse.json(
-            {
-                success: false,
-                error: error.message,
-            },
-            {
-                status: 500,
-            }
+            { success: false, error: error.message },
+            { status: 500 }
         );
     }
 }
