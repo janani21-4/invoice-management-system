@@ -3,10 +3,10 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET(
     request: NextRequest,
-    context: any
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = context.params.id;
+        const { id } = await params;
 
         const invoice = await prisma.invoice.findUnique({
             where: { id },
@@ -23,7 +23,6 @@ export async function GET(
             success: true,
             invoice,
         });
-
     } catch (error: any) {
         return NextResponse.json(
             { success: false, error: error.message },
