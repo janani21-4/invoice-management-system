@@ -8,12 +8,8 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   useEffect(() => {
-    if (!API_URL) return;
-
-    fetch(`${API_URL}/invoices`)
+    fetch("/api/invoices")   // ✅ FIXED: always use Next.js API route
       .then((res) => res.json())
       .then((data) => {
         setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
