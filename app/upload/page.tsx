@@ -33,7 +33,7 @@ export default function UploadPage() {
 
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
+      if (!res.ok) {
         throw new Error(data?.error || "Upload failed");
       }
 
@@ -46,9 +46,15 @@ export default function UploadPage() {
     }
   };
 
+  const resetUpload = () => {
+    setFile(null);
+    setResult(null);
+    setError(null);
+    setLoading(false);
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8">
 
         <h1 className="text-3xl font-bold text-gray-800">
@@ -56,73 +62,108 @@ export default function UploadPage() {
         </h1>
 
         <p className="text-gray-500 mt-2 mb-8">
-          Upload PDF to extract invoice details automatically
+          Select a PDF invoice to extract invoice information automatically.
         </p>
 
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-        />
+        {/* FILE INPUT */}
+        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 bg-gray-50">
 
-        {file && (
-          <p className="mt-4 text-blue-600">
-            Selected: {file.name}
-          </p>
-        )}
+          <div className="text-center">
 
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold disabled:bg-gray-400"
-        >
-          {loading ? "Processing..." : "Upload Invoice"}
-        </button>
+            <div className="text-6xl mb-4">📄</div>
 
-        {/* ERROR BOX */}
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-700
+              file:mr-4 file:rounded-lg file:border-0
+              file:bg-blue-600 file:px-4 file:py-2
+              file:text-white hover:file:bg-blue-700"
+            />
+
+            {file && (
+              <div className="mt-5 bg-blue-50 rounded-lg p-4">
+                <p className="font-semibold text-blue-700">
+                  Selected File
+                </p>
+                <p className="text-gray-700 mt-1">{file.name}</p>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* ERROR */}
         {error && (
-          <div className="mt-6 bg-red-50 text-red-700 p-4 rounded-lg">
-            ❌ {error}
+          <div className="mt-4 bg-red-100 text-red-700 p-3 rounded-lg">
+            {error}
           </div>
         )}
 
-        {/* SUCCESS BOX */}
-        {result?.success && result?.invoice && (
-          <div className="mt-8 bg-green-50 p-4 rounded-lg">
-            <h2 className="text-green-700 font-bold text-lg">
-              Upload Successful
+        {/* BUTTON */}
+        <button
+          onClick={handleUpload}
+          disabled={loading}
+          className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold disabled:bg-gray-400"
+        >
+          {loading ? "Processing Invoice..." : "Upload Invoice"}
+        </button>
+
+        {/* SUCCESS RESULT */}
+        {result?.success && result?.fields && (
+          <div className="mt-8 bg-green-50 border border-green-300 rounded-xl p-6">
+
+            <h2 className="text-2xl font-bold text-green-700">
+              ✅ Invoice Uploaded Successfully
             </h2>
 
-            <p>Invoice: {result.invoice.invoiceNumber || "-"}</p>
-            <p>Vendor: {result.invoice.vendorName || "-"}</p>
-            <p>Amount: {result.invoice.totalAmount || "0.00"}</p>
-            <p>Status: {result.invoice.status}</p>
+            <div className="mt-5 space-y-2 text-gray-700">
 
-            <div className="flex gap-4 mt-6">
+              <p>
+                <b>Invoice Number:</b>{" "}
+                {result.fields.invoiceNumber || "-"}
+              </p>
+
+              <p>
+                <b>Vendor:</b>{" "}
+                {result.fields.vendorName || "-"}
+              </p>
+
+              <p>
+                <b>Amount:</b> $
+                {result.fields.totalAmount || "0.00"}
+              </p>
+
+              <p>
+                <b>Invoice Date:</b>{" "}
+                {result.fields.invoiceDate || "-"}
+              </p>
+
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex gap-4 mt-8">
 
               <Link href="/invoices">
-                <button className="bg-green-600 text-white px-4 py-2 rounded">
+                <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
                   View Invoices
                 </button>
               </Link>
 
               <button
-                onClick={() => {
-                  setFile(null);
-                  setResult(null);
-                  setError(null);
-                }}
-                className="bg-gray-700 text-white px-4 py-2 rounded"
+                onClick={resetUpload}
+                className="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold"
               >
                 Upload Another
               </button>
 
             </div>
+
           </div>
         )}
 
       </div>
-
     </main>
   );
 }
