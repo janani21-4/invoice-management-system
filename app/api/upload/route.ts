@@ -5,6 +5,9 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
+    // -----------------------------
+    // GET FILE FROM FRONTEND
+    // -----------------------------
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -16,13 +19,22 @@ export async function POST(req: NextRequest) {
     }
 
     // -----------------------------
-    // SEND TO PYTHON BACKEND (RAILWAY)
+    // SEND TO FASTAPI (RENDER BACKEND)
     // -----------------------------
     const pythonForm = new FormData();
     pythonForm.append("file", file);
 
+    const backendUrl = process.env.PYTHON_BACKEND_URL;
+
+    if (!backendUrl) {
+      return NextResponse.json(
+        { success: false, error: "Backend URL not configured" },
+        { status: 500 }
+      );
+    }
+
     const pythonResponse = await fetch(
-      `${process.env.PYTHON_BACKEND_URL}/extract-pdf/`,
+      `${backendUrl}/extract-pdf/`,
       {
         method: "POST",
         body: pythonForm,
@@ -31,9 +43,9 @@ export async function POST(req: NextRequest) {
 
     const pythonData = await pythonResponse.json();
 
-    if (!pythonData.success) {
+    if (!pythonResponse.ok || !pythonData.success) {
       return NextResponse.json(
-        { success: false, error: "Python processing failed" },
+        { success: false, error: "Python backend failed" },
         { status: 500 }
       );
     }
@@ -41,7 +53,7 @@ export async function POST(req: NextRequest) {
     const f = pythonData.fields;
 
     // -----------------------------
-    // SAVE TO PRISMA
+    // SAVE TO DATABASE (PRISMA + NEON)
     // -----------------------------
     const invoice = await prisma.invoice.create({
       data: {
@@ -57,11 +69,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // -----------------------------
+    // RESPONSE TO FRONTEND
+    // -----------------------------
     return NextResponse.json({
       success: true,
       invoice,
     });
+
   } catch (error: any) {
+    console.error("UPLOAD ERROR:", error);
+
     return NextResponse.json(
       {
         success: false,
