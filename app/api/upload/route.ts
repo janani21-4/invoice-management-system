@@ -16,13 +16,13 @@ export async function POST(req: NextRequest) {
     }
 
     // -----------------------------
-    // SEND TO PYTHON BACKEND
+    // SEND TO PYTHON BACKEND (RAILWAY)
     // -----------------------------
     const pythonForm = new FormData();
     pythonForm.append("file", file);
 
     const pythonResponse = await fetch(
-      "http://127.0.0.1:8000/extract-pdf/",
+      `${process.env.PYTHON_BACKEND_URL}/extract-pdf/`,
       {
         method: "POST",
         body: pythonForm,
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const f = pythonData.fields;
 
     // -----------------------------
-    // SAVE TO PRISMA (YOUR SCHEMA)
+    // SAVE TO PRISMA
     // -----------------------------
     const invoice = await prisma.invoice.create({
       data: {
@@ -49,13 +49,11 @@ export async function POST(req: NextRequest) {
         vendorName: f.vendorName || null,
         gstNumber: null,
         invoiceDate: f.invoiceDate ? new Date(f.invoiceDate) : null,
-        totalAmount: f.totalAmount
-          ? parseFloat(f.totalAmount)
-          : null,
+        totalAmount: f.totalAmount ? parseFloat(f.totalAmount) : null,
         fileUrl: file.name,
         rawText: pythonData.text || null,
         status: "COMPLETED",
-        userId: "592cdaad-b055-4708-967b-ad7dc549b29c", // replace with real auth later
+        userId: "592cdaad-b055-4708-967b-ad7dc549b29c",
       },
     });
 
